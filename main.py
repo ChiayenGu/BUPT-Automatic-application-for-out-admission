@@ -4,10 +4,10 @@
 import datetime
 import json
 import time
-
+import pprint
 import chinese_calendar
 import requests
-import msvcrt
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -49,7 +49,7 @@ def set_driver():
     options.add_experimental_option("excludeSwitches", ['enable-automation', 'enable-logging'])
 
     # 处理无头
-    options.add_argument('--headless')
+    # options.add_argument('--headless')
     driver = webdriver.Chrome(options=options)
     return driver
 
@@ -130,7 +130,7 @@ def send_apply_for_out_school(out_time, back_time):
                          "UserSearch_84": {"uid": menter_info['id'], "name": menter_info['name'],
                                            "college": menter_info['college'], "number": menter_info['number']}}},
              "userview": 1,
-             "special_approver": [{"node_key": "UserTask_0dvqsya", "uids": [197765], "subprocessIndex": ""}]},
+             "special_approver": [{"node_key": "UserTask_0dvqsya", "uids": [counselor_info['id']], "subprocessIndex": ""}]},
         "step": "0",
         "agent_uid": "",
         "starter_depart_id": "181789",
@@ -186,11 +186,11 @@ def fetch_admin_user_info(name, type='counselor'):
     if (len(admin_user_info) > 1):
         for item in admin_user_info:
             if base_user_info['User_9'] == item.collage:
-                # pprint.pprint(item)
+                pprint.pprint(item)
                 print('查询信息: {name} {id}'.format(name=item['name'],id=item['number']))
                 return item
     else:
-        # pprint.pprint(admin_user_info[0])
+        pprint.pprint(admin_user_info[0])
         print('查询信息: {name} {id}'.format(name=admin_user_info[0]['name'], id=admin_user_info[0]['number']))
         return admin_user_info[0]
 
@@ -226,6 +226,12 @@ if __name__ == "__main__":
     back_time = settings.BACK_TIME  # 入校时间 只支持整数 24小时制
 
     want_out_weekday = settings.WANT_OUT_WEEKDAY # 星期几出入校？0=星期一 4=星期五 5=星期六 6=星期日
+    if want_out_weekday ==[]:
+        want_out_weekday = [0,1,2,3,4,5,6]
+    check_list = [student_id,password,mobile_number,counselor_name,menter_name,destination,reason,out_time,back_time]
+    for item in check_list:
+        if not item:
+            raise ('setting文件未配置完全，请检查')
 
     if(are_you_outing_tomorrow(want_out_weekday)):
         print('按照预定计划，明天{tomorrow} {weekday} 出校 开始发送请求'.format(tomorrow=tomorrow,weekday=weekday))
@@ -242,6 +248,7 @@ if __name__ == "__main__":
             except Exception as e:
                 print('自动发送出入校请求失败')
             finally:
-                driver.close()
+                # driver.close()
+                pass
     else:
         print('按照预定计划，明天{tomorrow} {weekday} 不出校'.format(tomorrow=tomorrow,weekday=weekday))
